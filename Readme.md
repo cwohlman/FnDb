@@ -25,7 +25,7 @@ Ephemeral:
 - aggregate(List<A>, B, Fn<(A, B) => B>) => B
 - 
 
-
+Realization: I need to write a programing language - maybe I should look into datalog 
 
 
 Research and Planning
