@@ -1,11 +1,51 @@
-#FnDB
+FnDB
+========
+
+
+Goals
+--------
+
+A database that is as flexible as a set of arrays and hashes, but immutable.
+
+Philosophy
+--------
+
+Imutable insertion, ephemeral views.
+
+Primatives
+--------
+
+Immutable:
+- OrderedList
+
+Ephemeral:
+- Fn (A function or function arguments pair)
+- map(List<A>, Fn<A => B>, OrderedList) => List<B>
+- group(List<A>, Fn<A => Key>) => Hash<Key, List<A>>
+- aggregate(List<A>, B, Fn<(A, B) => B>) => B
+- 
+
+
+
 
 Research and Planning
+========
 - I plan to use Deno
 - I'll use this for the db initially and then write connectors for other dbs: https://deno.land/x/sqlite@v3.7.0
 - Example of building connectors: https://github.com/eveningkid/denodb/tree/master/lib/connectors
 
--- Notes --
+Working through problems:
+==========
+
+Problem #1: Should buckets be applied pre or post insertion?
+
+Pre: ensures we don't save invalid records & they are invalidated
+Post: ensures that objects in the same (named) bucket can be retreived across multiple aggregation pipelines.
+
+Answer: both - make the schema optional, when not included queries return all objects and inserts accept all objects - the generated bucketId will be for a schema of a => a
+
+Notes
+============
 
 
 Mutations:
@@ -15,9 +55,6 @@ Mutations:
 * RecordId
 * CommitId
 * Mutation
-
-Metadata:
-* MutationId
 * Metadata
 
 Commits:
