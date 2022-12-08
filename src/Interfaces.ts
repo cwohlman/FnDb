@@ -96,25 +96,6 @@ export type Putable<Value> = LocalPutable<Value> | RemotePutable<Value>;
 export type LocalPutable<Value> = { put(value: Value): void };
 export type RemotePutable<Value> = { put(value: Value): Promise<void> };
 
-// Wow! What a complicated type!
-// export type Remote<T> = T extends Iterable<infer Key, infer Value>
-//   ? RemoteIterable<Key, Value> &
-//       (T extends Mutable<Key, Value> ? RemoteMutable<Key, Value> : unknown) &
-//       (T extends Appendable<Value> ? RemoteAppendable<Value> : unknown) &
-//       (T extends Redactable<Key> ? RemoteRedactable<Key> : unknown)
-//   : T extends Mutable<infer Key, infer Value>
-//   ? RemoteMutable<Key, Value> &
-//       (T extends Appendable<Value> ? RemoteAppendable<Value> : unknown) &
-//       (T extends Redactable<Key> ? RemoteRedactable<Key> : unknown)
-//   : T extends Appendable<infer Value>
-//   ? RemoteAppendable<Value> &
-//       (T extends Redactable<infer Key> ? RemoteRedactable<Key> : unknown)
-//   : T extends Redactable<infer Key>
-//   ? RemoteRedactable<Key>
-//   : T extends Box<infer Value>
-//   ? RemoteBox<Value>
-//   : RemoteBox<T>;
-
 export type Remote<T> = T extends Iterable<infer Key, infer Value>
   ? RemoteIterable<Key, Value>
   : T extends Gettable<infer Value>
