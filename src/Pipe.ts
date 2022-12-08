@@ -1,3 +1,4 @@
+import { CollectionKey } from "./Collection.ts";
 import { Source } from "./Source.ts";
 
 export type OperationPipeline = Operation<any, any>[];
@@ -51,5 +52,11 @@ export class Pipe<Pipeline extends OperationPipeline> {
     })
 
     return prev as Tail<Pipeline>;
+  }
+}
+
+export function map<Key extends CollectionKey, Data, Result>(fn: (data: Data) => Result): Operation<Source<Key, Data>, Source<Key, Result>> {
+  return {
+    
   }
 }
