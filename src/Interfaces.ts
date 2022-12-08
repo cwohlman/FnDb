@@ -1,3 +1,5 @@
+// deno-lint-ignore-file no-explicit-any
+
 export type Scalar =
   | boolean
   | number

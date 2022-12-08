@@ -13,7 +13,7 @@ export default class LocalStream<Value>
     );
   }
 
-  redact(key: [number] | []): true {
+  redact(_key: [number] | []): true {
     throw new Error("Method not implemented.");
   }
   append(value: Value): number {
