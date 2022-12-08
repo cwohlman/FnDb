@@ -11,7 +11,7 @@ export default class LocalCollection<Key extends CollectionKey, Value>
   implements LocalIterable<Key, Value>
 {
   constructor(
-    private underlying: [key: Key, value: Value][],
+    protected underlying: [key: Key, value: Value][],
     public readonly keySize: Key["length"]
   ) {}
   $boxed: true = true;

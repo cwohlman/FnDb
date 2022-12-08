@@ -6,10 +6,19 @@ export default class LocalStream<Value>
   extends LocalCollection<[number], Value>
   implements LocalAppendable<Value>, LocalRedactable<[number]>
 {
+  constructor(initialValues: Value[] = []) {
+    super(
+      initialValues.map((a, i) => [[i], a]),
+      1
+    );
+  }
+
   redact(key: [number] | []): true {
     throw new Error("Method not implemented.");
   }
   append(value: Value): number {
-    throw new Error("Method not implemented.");
+    const index = this.underlying.length;
+    this.underlying.push([[index], value]);
+    return index;
   }
 }
