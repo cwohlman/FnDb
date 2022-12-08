@@ -1,94 +1,120 @@
-export class Bucket<Data> implements
-  Sink<Data, Entry<Data>>,
-  Iterable<Entry<Data>>,
-  Indexed<number, Entry<Data>>
-{
-  insert(value: Data): Entry<Data> | Error {
-    throw new Error("Not implemented");
-  }
-  cursor(): Cursor<Entry<Data>> {
-    throw new Error("Not implemented");
-  }
-  fetch(key: number): Entry<Data> {
-    throw new Error("Not implemented");
-  }
-  keys(): Iterable<number> {
-    throw new Error("Not implemented");
-  }
-}
+// console.log("starting...");
 
-export class Query<TSource, TResult, TArgs extends any[]> {
+class Collection<TKey extends (string | number)[], TValue> {
   constructor(
-    public readonly source: Iterable<TSource>,
-    public readonly iterator: (item: TSource, memo: TResult, ...args: TArgs) => TResult,
-    public readonly memo: TResult,
-    public readonly args: TArgs,
-  ) { }
-}
-
-interface Sink<Input, Output> {
-  insert(value: Input): Output | Error
-}
-
-interface Entry<T> {
-  id: number,
-  value: T,
-}
-
-interface Iterable<Data> {
-  cursor(): Cursor<Data>
-}
-
-interface Indexed<TKey extends string | number | boolean, Data> {
-  fetch(key: TKey): Data
-  keys(): Iterable<TKey>
-}
-
-interface Cursor<T> {
-  next(): T
-}
-
-
-
-export function reduce<Element, Args extends any[], Result>(
-  source: Set<Element> | Db<Element>,
-  fn: (item: Element, ...args: Args) => Result,
-  ...args: Args
-):
-
-  // TODO: convert this to the type "DeferedSet" or some such
-  Result | null {
-  let result: Result | null = null;
-  if (source instanceof Set) {
-    for (const element of source) {
-      result = fn(element, ...args);
-    }
-  } else {
-    // TODO: map over args and convert any Set or Map into a cached table etc.
-    const cursor = source.getCursor();
-    while (cursor.hasMore()) {
-      result = fn(cursor.next(), ...args);
-    }
+    underlying: MapFor<TKey, TValue>,
+    protected keyLength: TKey["length"]
+  ) {
+    if (keyLength == 0)
+      this.value = this.underlying as any;
+    else
+      this.underlying = underlying as any;
   }
-  return result;
-}
 
-export class Db<Element> {
-  private documents: Element[] = []
-  insert(document: Element) {
-    this.documents.push(document);
+  protected underlying: Map<any, any>;
+  protected value: TValue | null = null;
+
+
+  get(...key: TKey): TValue | null {
+    this.ensureLength(key);
+
+    if (this.keyLength == 0) return this.value;
+
+    let prefix = key.slice(0, -1);
+    let last = key.slice(-1)[0];
+    let underlying = this.underlying;
+    for (let part of prefix) {
+      if (!underlying.has(part)) underlying.set(part, new Map());
+      underlying = underlying.get(part);
+    }
+
+    return underlying.get(last);
   }
-  getCursor() {
-    let i = 0;
-    return {
-      next(): Element {
-        const result = this.documents[i];
-        i++;
-        return result;
-      },
-      hasMore(): boolean {
-        return i < this.documents.length;
+
+  iter<T>(
+    iter: (key: TKey, value: TValue, memo: T) => void | null | undefined | "break",
+    memo: T
+  ): T {
+    if (this.keyLength == 0) {
+      iter([] as any, this.value as any, memo);
+    } else {
+      this.walk([], this.underlying, (key, value) => iter(key, value, memo));
+    }
+
+    return memo;
+  }
+
+  walk(
+    leftKey: (string | number)[],
+    underlying: Map<string | number, Map<any, any> | TValue>,
+    iter: (key: TKey, value: TValue) => void | undefined | null | "break",
+  ): null | "break" {
+    for (let pair of underlying.entries()) {
+      const [rightKey, value] = pair;
+      const key = [...leftKey, rightKey];
+
+      if (key.length == this.keyLength) {
+        const result = iter(key as any, value as TValue);
+        if (result == "break") return result;
+      } else {
+        const result = this.walk(key, value as Map<any, any>, iter);
+        if (result == "break") return result;
       }
     }
+
+    return null;
+  }
+
+  protected ensureLength(key: TKey) {
+    if (this.keyLength != key.length) {
+      throw new Error("Invalid key length");
+    }
   }
 }
+
+class Collector<TKey extends (string | number)[], TValue> extends Collection<TKey, TValue> {
+  collect(key: TKey, value: TValue) {
+    this.ensureLength(key);
+
+    if (key.length == 0) {
+      this.value = value;
+    } else {
+      let prefix = key.slice(0, -1);
+      let last = key.slice(-1)[0];
+
+      let underlying = this.underlying;
+
+      for (let part of prefix) {
+        if (!underlying.has(part)) underlying.set(part, new Map());
+        underlying = underlying.get(part);
+      }
+
+      underlying.set(last, value);
+    }
+  }
+
+  toCollection() {
+    if (!this.keyLength) return new Collection<TKey, TValue>(this.value as any, 0);
+    return new Collection<TKey, TValue>(this.underlying as any, this.keyLength)
+  }
+}
+
+type MapFor<TKey extends (string | number)[], TValue> =
+  TKey extends [] ? TValue :
+  TKey extends [(infer Key), ...(infer Rest extends (string | number)[])] ? Map<Key, MapFor<Rest, TValue>> :
+  never
+  ;
+
+const bucket = new Collector<[string], string>(new Map<string, string>(), 1)
+
+bucket.collect(["hi"], "there");
+
+// bucket.iter((key, item) => console.log(key, item), undefined);
+
+const result = bucket.iter((key, item, memo) => {
+  memo.collect(key, item);
+
+  return null;
+}, new Collector<[string], string>(new Map<string, string>(), 1))
+
+console.log("result", result.get("hi"));
