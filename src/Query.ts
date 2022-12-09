@@ -1,7 +1,6 @@
 import { Iterable, CollectionKey } from "./Interfaces.ts";
 import LocalBucket from "./LocalBucket.ts";
 import LocalStream from "./LocalStream.ts";
-import { keyMatch } from "./utils.ts";
 
 export function map<Key extends CollectionKey, Input, Output>(
   source: Iterable<Key, Input>,

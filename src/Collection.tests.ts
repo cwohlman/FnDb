@@ -1,4 +1,4 @@
-import { assertEquals } from "https://deno.land/std@0.167.0/testing/asserts.ts";
+import { assertEquals } from "../deps.ts";
 import { Stream, Iterable, CollectionKey, Bucket } from "./Interfaces.ts";
 import LocalBucket from "./LocalBucket.ts";
 import LocalCollection from "./LocalCollection.ts";

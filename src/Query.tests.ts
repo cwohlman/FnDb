@@ -1,7 +1,5 @@
-import {
-  assert,
-  assertEquals,
-} from "https://deno.land/std@0.167.0/testing/asserts.ts";
+import { assertEquals } from "../deps.ts";
+
 import { collections, buckets, streams } from "./Collection.tests.ts";
 
 import { filter, map, take } from "./Query.ts";

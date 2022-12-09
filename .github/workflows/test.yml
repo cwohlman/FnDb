@@ -6,10 +6,20 @@ on:
       - "**" # matches every branch
 jobs:
   test:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.04env:
+  
+    env:
+      DENO_DIR: my_cache_directory
+
     steps:
       - uses: actions/checkout@v2
-
+      
+      - name: Cache Deno dependencies 
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.DENO_DIR }}
+          key: ${{ hashFiles('lock.json') }}
+          
       - name: Setup Deno
         uses: denoland/setup-deno@v1.1.1
 
