@@ -2,8 +2,8 @@ import { assertEquals } from "../deps.ts";
 
 import { collections, buckets, streams } from "./Collection.tests.ts";
 
-import { filter, map, take } from "./Query.ts";
-import { load } from "./utils.ts";
+import { filter, map, reduce, reduceGroups, take } from "./Query.ts";
+import { load, unwrap } from "./utils.ts";
 
 collections.concat(buckets).forEach(([name, factory]) => {
   Deno.test({
@@ -71,6 +71,40 @@ collections.concat(buckets).forEach(([name, factory]) => {
       assertEquals((await load(returnKeys)).values(), ["a2"]);
     },
   });
+  Deno.test({
+    name: `${name} - Queries - reduce`,
+    fn: async () => {
+      const collection = factory(
+        [
+          [["a", 1], 1],
+          [["a", 2], 2],
+          [["a", 3], 3],
+        ],
+        2
+      );
+
+      const appendNew = reduce(collection, (a, memo) => memo + a, 0);
+      assertEquals(await unwrap(appendNew), 6);
+    },
+  });
+  Deno.test({
+    name: `${name} - Queries - reduceGroups`,
+    fn: async () => {
+      const collection = factory(
+        [
+          [["a", 1], 1],
+          [["a", 2], 2],
+          [["a", 3], 3],
+        ],
+        2
+      );
+
+      const appendNew = reduceGroups(collection, (a, memo) => memo + a, 0, 1);
+      const local = await load(appendNew);
+
+      assertEquals(local.get("a"), 6);
+    },
+  });
 });
 
 streams.forEach(([name, factory]) => {
@@ -112,6 +146,15 @@ streams.forEach(([name, factory]) => {
 
       const returnKeys = take(collection, 1, 1);
       assertEquals((await load(returnKeys)).values(), ["a2"]);
+    },
+  });
+  Deno.test({
+    name: `${name} - Queries - reduce`,
+    fn: async () => {
+      const collection = factory([1, 2, 3]);
+
+      const appendNew = reduce(collection, (a, m) => a + m, 0);
+      assertEquals(await unwrap(appendNew), 6);
     },
   });
 });

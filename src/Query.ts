@@ -57,7 +57,7 @@ export function reduce<Key extends CollectionKey, Input, Output>(
   }, mutableBox(memo));
 }
 
-export function reduceGroup<
+export function reduceGroups<
   Key extends CollectionKey,
   Input,
   OutputKey extends PartialKey<Key> & CollectionKey,
