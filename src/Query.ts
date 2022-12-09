@@ -5,10 +5,12 @@ import {
   Boxed,
   RemoteGettable,
   Gettable,
+  BucketKey,
 } from "./Interfaces.ts";
 import LocalBucket from "./LocalBucket.ts";
 import LocalStream from "./LocalStream.ts";
-import { mutableBox } from "./utils.ts";
+import LocalStreamBucket from "./LocalStreamBucket.ts";
+import { keyMatch, mutableBox } from "./utils.ts";
 
 export function map<Key extends CollectionKey, Input, Output>(
   source: Iterable<Key, Input>,
@@ -81,4 +83,17 @@ export function reduceGroups<
 
     bucket.put(partialKey, fn(value, previousValue, partialKey, key));
   }, new LocalBucket<OutputKey, Output>([], keyLength));
+}
+
+export function group<
+  Key extends CollectionKey,
+  Value,
+  GroupKey extends CollectionKey
+>(
+  source: Iterable<Key, Value>,
+  fn: (input: Value, key: Key) => BucketKey<GroupKey>
+): Iterable<GroupKey, Value> {
+  return source.iter((key, value, memo) => {
+    memo.append(value, fn(value, key));
+  }, new LocalStreamBucket());
 }

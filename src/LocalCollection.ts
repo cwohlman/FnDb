@@ -4,6 +4,7 @@ import {
   Boxed,
   DeepMap,
   IterationControl,
+  Scalar,
 } from "./Interfaces.ts";
 import { box, keyMatch } from "./utils.ts";
 
@@ -48,8 +49,11 @@ export default class LocalCollection<Key extends CollectionKey, Value>
   pairs(): [Key, Value][] {
     return this.underlying.map((pair) => pair);
   }
-  count(): number {
-    return this.underlying.length;
+  count(...key: Scalar[]): number {
+    if (key.length == 0) return this.underlying.length;
+    return this.underlying.filter(([entryKey]) =>
+      keyMatch(entryKey.slice(0, key.length), key)
+    ).length;
   }
   map(): DeepMap<Key, Value> {
     // return new Map(this.underlying);

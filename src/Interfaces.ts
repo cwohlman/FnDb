@@ -14,6 +14,13 @@ export type PartialKey<TKey extends Scalar[]> = TKey extends [
 ]
   ? [] | [Head] | [Head, ...PartialKey<Tail>]
   : [];
+
+export type BucketKey<T extends Scalar[]> = T extends [
+  ...infer P extends CollectionKey,
+  number
+]
+  ? P
+  : [];
 export type DeepMap<TKey extends Scalar[], TValue> = TKey extends []
   ? TValue
   : TKey extends [infer Key, ...infer Rest extends Scalar[]]
@@ -40,7 +47,7 @@ export interface LocalIterable<TKey extends CollectionKey, TValue> {
   values(): TValue[];
   keys(): TKey[];
   pairs(): [TKey, TValue][];
-  count(): number;
+  count(...key: Scalar[]): number;
 
   map(): DeepMap<TKey, TValue>;
   // TODO: toObject():
@@ -64,17 +71,19 @@ export interface RemoteIterable<TKey extends CollectionKey, TValue> {
   load(): Promise<LocalIterable<TKey, TValue>>;
 }
 
-export type Appendable<T> = LocalAppendable<T> | RemoteAppendable<T>;
-export interface LocalAppendable<T> {
+export type Appendable<T, Key extends CollectionKey = [number]> =
+  | LocalAppendable<T, Key>
+  | RemoteAppendable<T, Key>;
+export interface LocalAppendable<T, Key extends CollectionKey = [number]> {
   readonly $boxed: true;
 
-  append(value: T): number;
+  append(value: T, key: BucketKey<Key>): number;
 }
-export interface RemoteAppendable<T> {
+export interface RemoteAppendable<T, Key extends CollectionKey = [number]> {
   readonly $boxed: true;
   readonly $remote: true;
 
-  append(value: T): Promise<number>;
+  append(value: T, key: BucketKey<Key>): Promise<number>;
 
   save(): Promise<void>;
 }
@@ -104,13 +113,13 @@ export type Redactable<Key extends CollectionKey> =
 export interface LocalRedactable<TKey extends CollectionKey> {
   readonly $boxed: true;
 
-  redact(key: PartialKey<TKey>): number;
+  redact(key: Scalar[]): number;
 }
 export interface RemoteRedactable<TKey extends CollectionKey> {
   readonly $boxed: true;
   readonly $remote: true;
 
-  redact(key: PartialKey<TKey>): Promise<number>;
+  redact(key: Scalar[]): Promise<number>;
 
   save(): Promise<void>;
 }
@@ -157,3 +166,9 @@ export type Bucket<TKey extends CollectionKey, TValue> = Iterable<
 export type Stream<TValue> = Iterable<[number], TValue> &
   Appendable<TValue> &
   Redactable<[number]>;
+export type StreamBucket<TKey extends CollectionKey, TValue> = Iterable<
+  TKey,
+  TValue
+> &
+  Appendable<TValue, TKey> &
+  Redactable<TKey>;

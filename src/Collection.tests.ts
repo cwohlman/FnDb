@@ -106,7 +106,7 @@ collections.concat(buckets).forEach(([name, factory]) => {
 
         const values = await load(
           collection.iter((_key, value, memo) => {
-            memo.append(value);
+            memo.append(value, []);
           }, memo)
         );
 
@@ -192,7 +192,7 @@ streams.forEach(([name, factory]) => {
       const input = ["a", "b", "c", "A", "B", "C"];
       const subject = factory<string>(input);
 
-      await subject.append("foo");
+      await subject.append("foo", []);
       const local = await load(subject);
       assertEquals(local.get(6), "foo");
 
@@ -211,7 +211,7 @@ streams.forEach(([name, factory]) => {
 
         const values = await load(
           collection.iter((_key, value, memo) => {
-            memo.append(value);
+            memo.append(value, []);
           }, memo)
         );
 
