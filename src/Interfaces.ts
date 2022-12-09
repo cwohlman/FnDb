@@ -40,6 +40,7 @@ export interface LocalIterable<TKey extends CollectionKey, TValue> {
   values(): TValue[];
   keys(): TKey[];
   pairs(): [TKey, TValue][];
+  count(): number;
 
   map(): DeepMap<TKey, TValue>;
   // TODO: toObject():

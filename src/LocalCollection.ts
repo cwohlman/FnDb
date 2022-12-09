@@ -48,6 +48,9 @@ export default class LocalCollection<Key extends CollectionKey, Value>
   pairs(): [Key, Value][] {
     return this.underlying.map((pair) => pair);
   }
+  count(): number {
+    return this.underlying.length;
+  }
   map(): DeepMap<Key, Value> {
     // return new Map(this.underlying);
     throw new Error("Not Implemented");
