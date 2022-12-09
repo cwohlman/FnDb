@@ -3,7 +3,9 @@ import {
   CollectionKey,
   Gettable,
   Iterable,
+  LocalGettable,
   LocalIterable,
+  LocalPutable,
   RemoteGettable,
   Scalar,
 } from "./Interfaces.ts";
@@ -35,6 +37,20 @@ export function box<Value>(value: Value): Boxed<Value> {
       return value;
     },
   } as Boxed<Value>;
+}
+
+export function mutableBox<Value>(
+  value: Value
+): LocalGettable<Value> & LocalPutable<Value> {
+  return {
+    $boxed: true,
+    get() {
+      return value;
+    },
+    put(newValue: Value) {
+      value = newValue;
+    },
+  };
 }
 
 export function keyMatch<Key extends Scalar[]>(left: Key, right: Key) {

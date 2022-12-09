@@ -1,6 +1,14 @@
-import { Iterable, CollectionKey } from "./Interfaces.ts";
+import {
+  Iterable,
+  CollectionKey,
+  PartialKey,
+  Boxed,
+  RemoteGettable,
+  Gettable,
+} from "./Interfaces.ts";
 import LocalBucket from "./LocalBucket.ts";
 import LocalStream from "./LocalStream.ts";
+import { mutableBox } from "./utils.ts";
 
 export function map<Key extends CollectionKey, Input, Output>(
   source: Iterable<Key, Input>,
@@ -37,4 +45,40 @@ export function take<Key extends CollectionKey, Input>(
       const [key, value] = _value;
       memo.put(key, value);
     }, new LocalBucket<Key, Input>([], source.keySize));
+}
+
+export function reduce<Key extends CollectionKey, Input, Output>(
+  source: Iterable<Key, Input>,
+  fn: (input: Input, memo: Output, inputKey: Key) => Output,
+  memo: Output
+): Gettable<Output> {
+  return source.iter((key, value, memo) => {
+    memo.put(fn(value, memo.get(), key));
+  }, mutableBox(memo));
+}
+
+export function reduceGroup<
+  Key extends CollectionKey,
+  Input,
+  OutputKey extends PartialKey<Key> & CollectionKey,
+  Output
+>(
+  source: Iterable<Key, Input>,
+  fn: (
+    input: Input,
+    memo: Output,
+    outputKey: OutputKey,
+    inputKey: Key
+  ) => Output,
+  memo: Output,
+  keyLength: OutputKey["length"]
+): Iterable<OutputKey, Output> {
+  return source.iter((key, value, bucket) => {
+    const partialKey = key.slice(0, keyLength) as OutputKey;
+
+    let previousValue = bucket.get(...(partialKey as OutputKey));
+    if (previousValue === undefined) previousValue = memo;
+
+    bucket.put(partialKey, fn(value, previousValue, partialKey, key));
+  }, new LocalBucket<OutputKey, Output>([], keyLength));
 }
