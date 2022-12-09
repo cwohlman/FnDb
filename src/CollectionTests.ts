@@ -1,5 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.167.0/testing/asserts.ts";
-import { Stream, Iterable, CollectionKey } from "./Interfaces.ts";
+import { Stream, Iterable, CollectionKey, Bucket } from "./Interfaces.ts";
+import LocalBucket from "./LocalBucket.ts";
 import LocalCollection from "./LocalCollection.ts";
 
 import LocalStream from "./LocalStream.ts";
@@ -25,7 +26,23 @@ const collections: [
   ],
 ];
 
-collections.forEach(([name, factory]) => {
+const buckets: [
+  string,
+  <Key extends CollectionKey, Value>(
+    pairs: [Key, Value][],
+    keySize: Key["length"]
+  ) => Bucket<Key, Value>
+][] = [
+  [
+    "LocalBucket",
+    <Key extends CollectionKey, Value>(
+      pairs: [Key, Value][],
+      keySize: Key["length"]
+    ) => new LocalBucket<Key, Value>(pairs, keySize),
+  ],
+];
+
+collections.concat(buckets).forEach(([name, factory]) => {
   Deno.test({
     name: `${name} - Standard Collection Ops`,
     fn: async () => {
@@ -99,6 +116,34 @@ collections.forEach(([name, factory]) => {
   });
 });
 
+buckets.forEach(([name, factory]) => {
+  Deno.test({
+    name: `${name} - Mutate and Redact`,
+    fn: async () => {
+      const subject = factory<[string, string], string>(
+        [
+          [["a", "a"], "aa"],
+          [["a", "b"], "ab"],
+          [["b", "a"], "ba"],
+          [["b", "b"], "bb"],
+        ],
+        2
+      );
+
+      const local = await load(subject);
+      assertEquals(local.get("a", "a"), "aa");
+
+      await subject.mutate(["a", "a"], "aa-new");
+      const mutatedLocal = await load(subject);
+      assertEquals(mutatedLocal.get("a", "a"), "aa-new");
+
+      await subject.redact(["b", "b"]);
+      const redactedLocal = await load(subject);
+      assertEquals(redactedLocal.get("b", "b"), undefined);
+    },
+  });
+});
+
 streams.forEach(([name, factory]) => {
   Deno.test({
     name: `${name} - Standard Collection Ops`,
@@ -141,9 +186,22 @@ streams.forEach(([name, factory]) => {
     },
   });
 
-  // collections.forEach(([innerName, innerFactory]) => {
+  Deno.test({
+    name: `${name} - Append and Redact`,
+    fn: async () => {
+      const input = ["a", "b", "c", "A", "B", "C"];
+      const subject = factory<string>(input);
 
-  // })
+      await subject.append("foo");
+      const local = await load(subject);
+      assertEquals(local.get(6), "foo");
+
+      await subject.redact([0]);
+      const redactedLocal = await load(subject);
+      assertEquals(redactedLocal.get(0), undefined);
+    },
+  });
+
   streams.forEach(([innerName, innerFactory]) => {
     Deno.test({
       name: `${name} - Collect Values - ${innerName}`,

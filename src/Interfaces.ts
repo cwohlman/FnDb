@@ -103,13 +103,13 @@ export type Redactable<Key extends CollectionKey> =
 export interface LocalRedactable<TKey extends CollectionKey> {
   readonly $boxed: true;
 
-  redact(key: PartialKey<TKey>): true;
+  redact(key: PartialKey<TKey>): number;
 }
 export interface RemoteRedactable<TKey extends CollectionKey> {
   readonly $boxed: true;
   readonly $remote: true;
 
-  redact(key: PartialKey<TKey>): Promise<boolean>;
+  redact(key: PartialKey<TKey>): Promise<number>;
 
   save(): Promise<void>;
 }

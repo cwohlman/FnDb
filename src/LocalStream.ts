@@ -1,6 +1,7 @@
-import { LocalAppendable, LocalRedactable } from "./Interfaces.ts";
+import { LocalAppendable, LocalRedactable, PartialKey } from "./Interfaces.ts";
 
 import LocalCollection from "./LocalCollection.ts";
+import { keyMatch } from "./utils.ts";
 
 export default class LocalStream<Value>
   extends LocalCollection<[number], Value>
@@ -13,8 +14,19 @@ export default class LocalStream<Value>
     );
   }
 
-  redact(_key: [number] | []): true {
-    throw new Error("Method not implemented.");
+  redact(key: PartialKey<[number]>): number {
+    const keys = this.keys();
+
+    let didRemove = 0;
+    keys.forEach((entryKey) => {
+      if (keyMatch(key, entryKey.slice(0, key.length))) {
+        const index = this.underlying.findIndex(([k]) => k == entryKey);
+        this.underlying.splice(index, 1);
+        didRemove++;
+      }
+    });
+
+    return didRemove;
   }
   append(value: Value): number {
     const index = this.underlying.length;

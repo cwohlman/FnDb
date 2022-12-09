@@ -5,6 +5,7 @@ import {
   Iterable,
   LocalIterable,
   RemoteGettable,
+  Scalar,
 } from "./Interfaces.ts";
 
 export async function load<Key extends CollectionKey, Value>(
@@ -36,7 +37,7 @@ export function box<Value>(value: Value): Boxed<Value> {
   } as Boxed<Value>;
 }
 
-export function keyMatch<Key extends CollectionKey>(left: Key, right: Key) {
+export function keyMatch<Key extends Scalar[]>(left: Key, right: Key) {
   if (left.length != right.length) return false;
 
   return left.every((entry, i) => entry == right[i]);
