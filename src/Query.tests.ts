@@ -72,3 +72,46 @@ collections.concat(buckets).forEach(([name, factory]) => {
     },
   });
 });
+
+streams.forEach(([name, factory]) => {
+  Deno.test({
+    name: `${name} - Queries - map`,
+    fn: async () => {
+      const collection = factory(["a1", "a2", "a3"]);
+
+      const appendNew = map(collection, (a) => a + "-new");
+      assertEquals((await load(appendNew)).values(), [
+        "a1-new",
+        "a2-new",
+        "a3-new",
+      ]);
+
+      const returnKeys = map(collection, (_a, key) => key);
+      assertEquals((await load(returnKeys)).values(), [[0], [1], [2]]);
+    },
+  });
+  Deno.test({
+    name: `${name} - Queries - filter`,
+    fn: async () => {
+      const collection = factory(["a1", "a2", "a3"]);
+
+      const appendNew = filter(collection, (a) => /1/.test(a));
+      assertEquals((await load(appendNew)).values(), ["a1"]);
+
+      const returnKeys = filter(collection, (_a, key) => key[0] == 1);
+      assertEquals((await load(returnKeys)).values(), ["a2"]);
+    },
+  });
+  Deno.test({
+    name: `${name} - Queries - take`,
+    fn: async () => {
+      const collection = factory(["a1", "a2", "a3"]);
+
+      const appendNew = take(collection, 1);
+      assertEquals((await load(appendNew)).values(), ["a1"]);
+
+      const returnKeys = take(collection, 1, 1);
+      assertEquals((await load(returnKeys)).values(), ["a2"]);
+    },
+  });
+});
