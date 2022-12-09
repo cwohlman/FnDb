@@ -58,3 +58,22 @@ export function keyMatch<Key extends Scalar[]>(left: Key, right: Key) {
 
   return left.every((entry, i) => entry == right[i]);
 }
+
+export function keyAtOrBefore<Key extends Scalar[]>(
+  key: Key,
+  before: Scalar[]
+) {
+  const compare = key.slice(-before.length);
+
+  for (let i = 0; i < compare.length; i++) {
+    const left = compare[i];
+    const right = before[i];
+
+    if (left < right) return true;
+    if (left > right) return false;
+
+    // if left == right continue;
+  }
+
+  return true;
+}
