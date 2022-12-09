@@ -25,7 +25,7 @@ export interface Queryable<Key extends Scalar[], Value> {
   /**
    * Returns the most recent key which matches the specified prefix
    */
-  keys(prefix: Scalar[], before?: Scalar[]): Key[];
+  keys(prefix: Scalar[], before?: Scalar[], after?: Scalar[]): Key[];
   /**
    * Walks the collection without collecting results
    * @param fn A function which walks the collection
