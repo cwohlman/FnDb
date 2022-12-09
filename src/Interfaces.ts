@@ -85,14 +85,14 @@ export interface LocalMutable<TKey extends CollectionKey, TValue> {
   readonly $boxed: true;
   readonly keySize: number;
 
-  mutate(key: TKey, value: TValue): true;
+  put(key: TKey, value: TValue): true;
 }
 export interface RemoteMutable<TKey extends CollectionKey, TValue> {
   readonly $boxed: true;
   readonly $remote: true;
   readonly keySize: number;
 
-  mutate(key: TKey, value: TValue): Promise<boolean>;
+  put(key: TKey, value: TValue): Promise<boolean>;
 
   save(): Promise<void>;
 }

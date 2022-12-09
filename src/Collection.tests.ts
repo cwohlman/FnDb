@@ -6,11 +6,11 @@ import LocalCollection from "./LocalCollection.ts";
 import LocalStream from "./LocalStream.ts";
 import { load, unwrap } from "./utils.ts";
 
-const streams: [string, <T>(values: T[]) => Stream<T>][] = [
+export const streams: [string, <T>(values: T[]) => Stream<T>][] = [
   ["LocalStream", <T>(values: T[]) => new LocalStream<T>(values)],
 ];
 
-const collections: [
+export const collections: [
   string,
   <Key extends CollectionKey, Value>(
     pairs: [Key, Value][],
@@ -26,7 +26,7 @@ const collections: [
   ],
 ];
 
-const buckets: [
+export const buckets: [
   string,
   <Key extends CollectionKey, Value>(
     pairs: [Key, Value][],
@@ -133,7 +133,7 @@ buckets.forEach(([name, factory]) => {
       const local = await load(subject);
       assertEquals(local.get("a", "a"), "aa");
 
-      await subject.mutate(["a", "a"], "aa-new");
+      await subject.put(["a", "a"], "aa-new");
       const mutatedLocal = await load(subject);
       assertEquals(mutatedLocal.get("a", "a"), "aa-new");
 

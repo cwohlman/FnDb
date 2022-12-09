@@ -26,7 +26,7 @@ export default class LocalBucket<Key extends CollectionKey, Value>
     return didRemove;
   }
 
-  mutate(key: Key, value: Value): true {
+  put(key: Key, value: Value): true {
     const index = this.underlying.findIndex(([entryKey]) =>
       keyMatch(key, entryKey)
     );
